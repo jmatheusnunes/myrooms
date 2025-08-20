@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro/Login</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Cadastro</h1>
+      <form id="form-cadastro">
+        <input type="text" name="usuario" placeholder="Usuário" required>
+        <input type="password" name="senha" placeholder="Senha" required>
+        <button type="submit">Cadastrar</button>
+      </form>
+      <div id="msg-cadastro" class="notice"></div>
+    </div>
+
+    <div class="card">
+      <h1>Login</h1>
+      <form id="form-login">
+        <input type="text" name="usuario" placeholder="Usuário" required>
+        <input type="password" name="senha" placeholder="Senha" required>
+        <button type="submit">Entrar</button>
+      </form>
+      <div id="msg-login" class="notice"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('form-cadastro').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target;
+      const res = await fetch('/cadastro', { 
+        method:'POST', 
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          usuario: form.usuario.value,
+          senha: form.senha.value
+        })
+      });
+      const txt = await res.text();
+      document.getElementById('msg-cadastro').textContent = txt;
+      form.reset();
+    });
+
+    document.getElementById('form-login').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target;
+      const res = await fetch('/login', { 
+        method:'POST', 
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          usuario: form.usuario.value,
+          senha: form.senha.value
+        })
+      });
+      const txt = await res.text();
+      document.getElementById('msg-login').textContent = txt;
+      if(res.ok) localStorage.setItem('usuario', form.usuario.value);
+    });
+  </script>
+</body>
+</html>
