@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de Tarefas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body onload="carregar()">
+<div class="container">
+  <div class="card header">
+    <h1>Tarefas</h1>
+    <div class="toolbar">
+      <a class="btn secondary" href="biblioteca.html">Biblioteca</a>
+      <a class="btn secondary" href="index.html">Início</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <form id="form-tarefa" class="grid-2">
+      <input type="text" id="tarefa" placeholder="Nova tarefa" required>
+      <button type="submit">Adicionar</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <ul id="lista-tarefas" class="list"></ul>
+    <button onclick="limparConcluidas()">Remover concluídas</button>
+  </div>
+</div>
+
+<script>
+const usuario = localStorage.getItem('usuario');
+if(!usuario) location.href = 'index.html';
+
+async function carregar(){
+  const res = await fetch('/tarefas/' + usuario);
+  const tarefas = await res.json();
+  const ul = document.getElementById('lista-tarefas');
+  ul.innerHTML = '';
+  tarefas.forEach((t,i)=>{
+    const li = document.createElement('li');
+    li.className = 'item';
+    const text = typeof t === 'string' ? t : t.text;
+    const done = t.done ? 'done' : '';
+    const div = document.createElement('div');
+    div.className = 'text ' + done;
+    div.textContent = text;
+    div.onclick = ()=>toggle(i);
+    const btn = document.createElement('button');
+    btn.textContent = 'X';
+    btn.onclick = ()=>remover(i);
+    li.appendChild(div);
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+}
+
+document.getElementById('form-tarefa').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const input = document.getElementById('tarefa');
+  await fetch('/tarefas/' + usuario, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({tarefa: input.value})
+  });
+  input.value = '';
+  carregar();
+});
+
+async function remover(i){
+  await fetch(`/tarefas/${usuario}/${i}`, { method:'DELETE' });
+  carregar();
+}
+
+async function toggle(i){
+  await fetch(`/tarefas/${usuario}/${i}/toggle`, { method:'PATCH' });
+  carregar();
+}
+
+async function limparConcluidas(){
+  await fetch(`/tarefas/${usuario}/clear-done`, { method:'POST' });
+  carregar();
+}
+</script>
+</body>
+</html>
