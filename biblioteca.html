@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Biblioteca de Arquivos</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body onload="carregar()">
+<div class="container">
+  <div class="card header">
+    <h1>Biblioteca</h1>
+    <div class="toolbar">
+      <a class="btn secondary" href="tarefas.html">Tarefas</a>
+      <a class="btn secondary" href="index.html">Início</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Enviar arquivo</h2>
+    <form id="form-upload" class="grid-2">
+      <div>
+        <label>Escolha um arquivo</label>
+        <input type="file" name="arquivo" id="arquivo" required />
+      </div>
+      <div class="toolbar" style="align-self:end;">
+        <button type="submit">Enviar</button>
+      </div>
+    </form>
+    <div id="msg-upload" class="notice"></div>
+  </div>
+
+  <div class="card">
+    <h2>Meus arquivos</h2>
+    <ul id="arquivos" class="list"></ul>
+  </div>
+</div>
+
+<script>
+async function carregar(){
+  const res = await fetch('/arquivos');
+  const lista = await res.json();
+  const ul = document.getElementById('arquivos');
+  ul.innerHTML = '';
+  lista.forEach(item=>{
+    const li = document.createElement('li');
+    li.className = 'item';
+    const name = document.createElement('div');
+    name.className = 'text';
+    name.innerHTML = `<strong>${item.nome}</strong> <span class="small">(${item.tamanho})</span>`;
+    const link = document.createElement('a');
+    link.className = 'btn';
+    link.href = item.url;
+    link.textContent = 'Baixar';
+    link.setAttribute('download', item.nome);
+    li.appendChild(name);
+    li.appendChild(link);
+    ul.appendChild(li);
+  });
+}
+
+document.getElementById('form-upload').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const formData = new FormData();
+  const fileInput = document.getElementById('arquivo');
+  formData.append('arquivo', fileInput.files[0]);
+  const res = await fetch('/upload', { method:'POST', body:formData });
+  const txt = await res.text();
+  document.getElementById('msg-upload').textContent = txt;
+  fileInput.value = "";
+  carregar();
+});
+</script>
+</body>
+</html>
